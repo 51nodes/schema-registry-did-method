@@ -55,8 +55,37 @@ did:schema:ipfs-public:0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8
 
 ### CRUD Operations
 #### Create
+
+A schema DID is implicitly created by storing a respective schema file to one of the supported storage networks and making sure it remains stored on a permanent basis. For example, the provider of a JSON schema could store the JSON string containing the full schema definition as a file in the public IPFS network, receive the IPFS hash of this file and set up a pinning service (see e.g. https://docs.ipfs.io/concepts/persistence/) for this hash that makes sure the file is not removed from the storage.
+
+The provider can then assemble the schema DID from the combination of storage network, schema type and schema hash as described in the previous chapter. It is assumed that the provider stores this information for later usage and distribution, since there is no registry or catalog of existing schema DIDs.
+
 #### Read/Resolve
+
+Essentially, a schema DID resolves to the schema file stored in the underlying storage network. So the resolution of the schema DID consists of
+
+* verifying the existence and availability of the schema file corresponding to the hash in the storage network,
+* optionally validating the schema type (if present as a type hint in the DID),
+* and dynamically assembling a DID document including a service endpoint for the download of the schema file.
+
+If the hash does not exist or the type validation fails, the resolver must treat the DID as nonexistent.
+
+TODO add example DID document
+
+TODO mentiond and link reference implementation
+
+TODO how to download schema directly e.g. via DID path or DID fragment? 
+
 #### Update
+
+Since the schema definition is supposed to be immutable and any change in a schema file would result in a new hash and thus a new DID, the update operation is not required.
+
 #### Delete
+
+A schema DID is implicitly deleted by deleting the corresponding file from the underlying storage network.
+
 ## Security Considerations
+
 ## Privacy Considerations
+
+Due to the fact that schemas are technical definitions of data structures that should never involve any personal information, privacy should not be much of a concern. In all supported storage networks, the data is stored anonymously and can not be traced back to any specific individual. It is the responsibility of the party providing the schema to make sure that no privacy sensitive data is contained in the schema content.
