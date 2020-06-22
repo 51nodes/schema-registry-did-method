@@ -86,6 +86,8 @@ A schema DID is implicitly deleted by deleting the corresponding file from the u
 
 ## Security Considerations
 
+- Corresponding schemas are stored in a public manner thus they are visible to everyone. 
+
 ## Privacy Considerations
 
 Due to the fact that schemas are technical definitions of data structures that should never involve any personal information, privacy should not be much of a concern. In all supported storage networks, the data is stored anonymously and can not be traced back to any specific individual. It is the responsibility of the party providing the schema to make sure that no privacy sensitive data is contained in the schema content.
