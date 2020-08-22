@@ -24,10 +24,10 @@ The namestring that identifies this DID method is: ```schema```
 
 The according ABNF Scheme is defined as follows: 
 ````
-schema-did = "did:schema:" storage-network [ ":type-hint=" schema-type ] ":" schema-hash 
-storage-network = "ipfs-public" / "ipfs-evan" / "ipfs-evan-test"
+schema-did = "did:schema:" storage-network [ ":" schema-type ] ":" schema-id 
+storage-network = "public-ipfs" / "evan-ipfs"
 schema-type = "json-schema" / "xsd"
-schema-hash = "0x"n*HEXDIG
+schema-id = a-z / A-Z / 0-9 / "." / "-" / "_"
 ````
 
 #### Syntax Explanation
@@ -37,20 +37,20 @@ The DID comprises of multiple elements separated by colons (`:`):
 1. The general DID method prefix `did:schema`.
 1. A mandatory identifier for the storage network, chosen from a list of supported storage mechanisms and networks. Currently, the public IPFS network as well as Evan IPFS (core and testcore) are supported.
 1. An optional identifier for the type or format of the schema, chosen from a list of supported types. Currently, the JSON Schema and XSD formats are supported.
-1. The mandatory hash identifying the schema file in the given storage network. Represented as a hexadecimal / base16 string with the prefix `0x`.
+1. The mandatory schema-id identifying the schema file in the given storage network. Represented as a string.
 
 #### Example of a Schema DID
 
-The following DID represents a JSON Schema definition stored on the public IPFS network with the hash `0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8AECA37F3C`:
+The following DID represents a XSD definition stored on the public IPFS network with the ipfsHash `QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5`
 
 ````
-did:schema:ipfs-public:type-hint=json-schema:0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8AECA37F3C
+did:schema:public-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5
 ````
 
 The same schema could be addressed without the type hint, however in this case the caller would need to determine the format of the schema themselves:
 
 ````
-did:schema:ipfs-public:0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8AECA37F3C
+did:schema:public-ipfs:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5
 ````
 
 ### CRUD Operations
@@ -64,21 +64,53 @@ The provider can then assemble the schema DID from the combination of storage ne
 
 Essentially, a schema DID resolves to the schema file stored in the underlying storage network. So the resolution of the schema DID consists of
 
-* verifying the existence and availability of the schema file corresponding to the hash in the storage network,
+* verifying the existence and availability of the schema file corresponding to the schema-id in the storage network,
 * optionally validating the schema type (if present as a type hint in the DID),
 * and dynamically assembling a DID document including a service endpoint for the download of the schema file.
 
-If the hash does not exist or the type validation fails, the resolver must treat the DID as nonexistent.
+If schema-id does not exist or the type validation fails, the resolver must treat the DID as nonexistent.
 
-TODO add example DID document
+**DID Document**
+````json
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:schema:evan-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5",
+  "service": [
+    {
+      "id": "did:schema:evan-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5#get",
+      "type": "GetSchemaService",
+      "serviceEndpoint": "https://ipfs.evan.network/ipfs/QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5"
+    }
+  ]
+}
+````
 
-TODO mentiond and link reference implementation
+**Reference implementation**
 
-TODO how to download schema directly e.g. via DID path or DID fragment? 
+did register library implemenation on Github [link](https://github.com/51nodes/schema-registry-did-crud),
+and published on npm [link](https://www.npmjs.com/package/@51nodes/decentralized-schema-registry)
+
+did resolver implemenation [link](https://github.com/51nodes/schema-registry-did-resolver)
+
+**Download schema**
+
+Via the DID fragement #get in the services of the DID Document
+````
+  "service": [
+    {
+      "id": "did:schema:evan-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5#get",
+      "type": "GetSchemaService",
+      "serviceEndpoint": "https://ipfs.evan.network/ipfs/QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5"
+    }
+  ]
+````
+or
+
+Via the [library](https://www.npmjs.com/package/@51nodes/decentralized-schema-registry) using `getSchema(did)` method
 
 #### Update
 
-Since the schema definition is supposed to be immutable and any change in a schema file would result in a new hash and thus a new DID, the update operation is not required.
+A schema DID is implicitly updated by updating the corresponding file from the underlying storage network. In some decentralized networks like public ipfs and evan ipfs the files supposed to be immutable and any change in a schema file would result in a new hash and thus a new DID, so the update operation is not required.
 
 #### Delete
 
