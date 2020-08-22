@@ -1,4 +1,4 @@
-# Schema Registry DID Method Specification v0.01
+# Schema Registry DID Method Specification v0.1
 ## About
 
 This Document describes the specification of a DID method used to identify and address schema definitions in a schema registry. It provides information about the method-sepcific DID syntax and exemplary CRUD operations as well as security and privacy considerations.
@@ -24,10 +24,11 @@ The namestring that identifies this DID method is: ```schema```
 
 The according ABNF Scheme is defined as follows: 
 ````
-schema-did = "did:schema:" storage-network [ ":type-hint=" schema-type ] ":" schema-hash 
-storage-network = "ipfs-public" / "ipfs-evan" / "ipfs-evan-test"
+schema-did = "did:schema:" storage-network [ ":" schema-type ] ":" schema-hash
+storage-network = "public-ipfs" / "evan-ipfs"
 schema-type = "json-schema" / "xsd"
-schema-hash = "0x"n*HEXDIG
+schema-hash = 1* hash-char
+hash-char = a-z / A-Z / 0-9 / "." / "-" / "_"
 ````
 
 #### Syntax Explanation
@@ -35,50 +36,73 @@ schema-hash = "0x"n*HEXDIG
 The DID comprises of multiple elements separated by colons (`:`):
 
 1. The general DID method prefix `did:schema`.
-1. A mandatory identifier for the storage network, chosen from a list of supported storage mechanisms and networks. Currently, the public IPFS network as well as Evan IPFS (core and testcore) are supported.
+1. A mandatory identifier for the storage network, chosen from a list of supported storage mechanisms and networks. Currently, the public IPFS network as well as Evan IPFS (core network) are supported.
 1. An optional identifier for the type or format of the schema, chosen from a list of supported types. Currently, the JSON Schema and XSD formats are supported.
-1. The mandatory hash identifying the schema file in the given storage network. Represented as a hexadecimal / base16 string with the prefix `0x`.
+1. The mandatory schema-hash identifying the schema file in the given storage network. Represented as a string.
 
 #### Example of a Schema DID
 
-The following DID represents a JSON Schema definition stored on the public IPFS network with the hash `0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8AECA37F3C`:
+The following DID represents an XSD definition stored on the public IPFS network with the IPFS hash `QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5`
 
 ````
-did:schema:ipfs-public:type-hint=json-schema:0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8AECA37F3C
+did:schema:public-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5
 ````
 
-The same schema could be addressed without the type hint, however in this case the caller would need to determine the format of the schema themselves:
+The same schema could be addressed without the type, however in this case the caller would need to determine the format of the schema themselves:
 
 ````
-did:schema:ipfs-public:0x64EC88CA00B268E5BA1A35678A1B5316D212F4F366B2477232534A8AECA37F3C
+did:schema:public-ipfs:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5
 ````
 
 ### CRUD Operations
+
+#### Reference Implementation
+
+The CRUD operations described in the following were implemented in a TypeScript library available in GitHub repository https://github.com/51nodes/schema-registry-did-crud and as an npm package https://www.npmjs.com/package/@51nodes/decentralized-schema-registry.
+
+There is also a (universal resolver compliant) DID Resolver implementation based on Nest.js and the reference library available in GitHub repository https://github.com/51nodes/schema-registry-did-resolver.
+
 #### Create
 
 A schema DID is implicitly created by storing a respective schema file to one of the supported storage networks and making sure it remains stored on a permanent basis. For example, the provider of a JSON schema could store the JSON string containing the full schema definition as a file in the public IPFS network, receive the IPFS hash of this file and set up a pinning service (see e.g. https://docs.ipfs.io/concepts/persistence/) for this hash that makes sure the file is not removed from the storage.
 
 The provider can then assemble the schema DID from the combination of storage network, schema type and schema hash as described in the previous chapter. It is assumed that the provider stores this information for later usage and distribution, since there is no registry or catalog of existing schema DIDs.
 
+Creating a schema can be performed with the reference library using the function `registerSchema`.
+
 #### Read/Resolve
 
 Essentially, a schema DID resolves to the schema file stored in the underlying storage network. So the resolution of the schema DID consists of
 
-* verifying the existence and availability of the schema file corresponding to the hash in the storage network,
-* optionally validating the schema type (if present as a type hint in the DID),
+* verifying the existence and availability of the schema file corresponding to the schema hash in the storage network,
+* optionally validating the schema type (if present as a type element in the DID),
 * and dynamically assembling a DID document including a service endpoint for the download of the schema file.
 
-If the hash does not exist or the type validation fails, the resolver must treat the DID as nonexistent.
+If the schema hash does not exist or the type validation fails, the resolver must treat the DID as nonexistent.
 
-TODO add example DID document
+A DID document of the DID `did:schema:evan-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5` would look like the following:
 
-TODO mentiond and link reference implementation
+````json
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:schema:evan-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5",
+  "service": [
+    {
+      "id": "did:schema:evan-ipfs:xsd:QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5#get",
+      "type": "GetSchemaService",
+      "serviceEndpoint": "https://ipfs.evan.network/ipfs/QmUQAxKQ5sbWWrcBZzwkThktfUGZvuPQyTrqMzb3mZnLE5"
+    }
+  ]
+}
+````
 
-TODO how to download schema directly e.g. via DID path or DID fragment? 
+The service endpoint with the fragment `#get` provides a URL to download the schema from the Evan IPFS.
+
+Alternatively, the schema could be loaded using the reference library function `getSchema(did)`.
 
 #### Update
 
-Since the schema definition is supposed to be immutable and any change in a schema file would result in a new hash and thus a new DID, the update operation is not required.
+A schema DID is implicitly updated by updating the corresponding file in the underlying storage network. It is assumed, though, that the schema hash provides a reference to an immutable set of data. This is the case in the IPFS networks where any change in a schema file would result in a new hash and thus a new DID.
 
 #### Delete
 
@@ -86,7 +110,7 @@ A schema DID is implicitly deleted by deleting the corresponding file from the u
 
 ## Security Considerations
 
-- Corresponding schemas are stored in a public manner thus they are visible to everyone. 
+The basic purpose of this DID method is to store, identify and resolve schema definitions in a decentralized way. This is not considered to be a security critical mechanism. However, along the process of storing and accessing data, users of this DID method must take the usual common sense precautions to protect their accounts (e.g. to be used for pinning in IPFS networks) and do not expose any credentials or other security sensitive information in schema content.
 
 ## Privacy Considerations
 
