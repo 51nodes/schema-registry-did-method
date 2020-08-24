@@ -12,10 +12,6 @@ The Schema Registry DID Method aims to provide unique and universal identificati
 
 This first version will focus on [JSON Schema](https://json-schema.org/) and [XML Schema Definition/XSD](https://www.w3.org/TR/xmlschema11-1/) schemas stored using the IPFS (InterPlanetary File System) protocol, but the DID method and concept is open for contributions and extensions regarding further schema formats and storage/network options.
 
-## Status of This Document
-
-Currently this document is not a W3C Standard. It is a draft and will be updated in future.
-
 
 ## Specification
 ### Method-specific DID Syntax
