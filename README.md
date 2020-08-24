@@ -5,7 +5,6 @@ This Document describes the specification of a DID method used to identify and a
 
 This specification conforms to the requirements in the [DID specification](https://w3c.github.io/did-core/) currently published by the W3C Credentials Community Group. For more information please refer to the link above. 
 
-This DID Method will be registered in the [DID Method Registry](https://w3c-ccg.github.io/did-method-registry/#the-registry).
 
 ## Abstract
 
