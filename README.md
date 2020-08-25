@@ -101,7 +101,7 @@ A schema DID is implicitly updated by updating the corresponding file in the und
 
 #### Delete
 
-A schema DID is implicitly deleted by deleting the corresponding file from the underlying storage network.
+A schema DID is implicitly deleted by deleting the corresponding file from the underlying storage network. On most IPFS networks the content is immutable and even an explicit deleting procedure is not granted to success.
 
 ## Security Considerations
 
@@ -109,10 +109,12 @@ The basic purpose of this DID method is to store, identify and resolve schema de
 
 Each Storage network has its own security aspects:
 ### Public IPFS 
-One of the security considerations is Evading. A Node can easily generate a completely new [Node Identity](https://medium.com/textileio/how-ipfs-peer-nodes-identify-each-other-on-the-distributed-web-8b5b6476aa5e) which make it impossible to exclude dishonest nodes, which serve contents for users that does not match the requested [CID](https://docs.ipfs.io/concepts/content-addressing/), from the network.
-Another consideration is that the messages being sent are not encrypted, which means that it would be possible for a [man-in-the-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) to intercept a message, change it and send it back on its way. Therefore, recipients should extra verify that the received content match the requested [CID](https://docs.ipfs.io/concepts/content-addressing/).
+One of the security considerations is Evading. A Node can easily generate a completely new [Node Identity](https://medium.com/textileio/how-ipfs-peer-nodes-identify-each-other-on-the-distributed-web-8b5b6476aa5e) which make it impossible to exclude dishonest nodes, which could serve contents for users that does not match the requested [CID](https://docs.ipfs.io/concepts/content-addressing/), from the network.
+Another consideration is using public or private [Gateway](https://docs.ipfs.io/concepts/ipfs-gateway/#overview), those gatways could be malicious or has some vulnerabilities that would make possible for a [man-in-the-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) to intercept a message, change it and send it back on its way. Therefore, recipients should extra verify that the received content match the requested CID and in case of writeables Gateway the added content should also be verified with the resulted CID.
+A [DDos attack](https://de.wikipedia.org/wiki/Denial_of_Service) on the public IPFS network is significantly more difficult because its distributed and peer-to-peer architecture. The content is spreaded out on severals nodes and can be accessed through the distributed storage network.
+
 ### evan.network IPFS
-Since the IPFS of evan.network is a permissioned IPFS network Evading is not a security considereation. However, the [man-in-the-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) could still possible for not encrypted messages.
+Since the IPFS of evan.network is a permissioned IPFS network Evading is not a security considereation. However, the premissioned Network is currenty small and a DDos attack on the network is relativly possible but still hard to success. Also, the [man-in-the-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) still possible if the gateway is malicious or has some vulnerabilities.
 
 ## Privacy Considerations
 
@@ -120,7 +122,8 @@ Due to the fact that schemas are technical definitions of data structures that s
 
 Similar Storage network has its own Privacy Considerations:
 ### Public IPFS
-With a slight modification to the IPFS node users requesting content can be tracked and data about them like ip-address, node id, Region could be collected. That happenes because when a user running a node requests content from the network, each node they’re connected to receives a message asking for that content. Even if the user is not running his own node and using public Gateway, the provider of the public Gateway could also track the users request and content.
+With a slight modification to the IPFS node users requesting content can be tracked and information about them like ip-address, node id, region could be collected. That happenes because when a user running a node requests content from the network, each node they are connected to receives a message asking for that content. Even if the user is not running his own node and using a [Gateway]((https://docs.ipfs.io/concepts/ipfs-gateway/#overview)), the provider of the public Gateway could also track the users request and content.
+
 ### evan.Network IPFS
-Because evan.network IPFS is permissioned, accessing the content for non particpante users is only through gateways which are provided by evan.network or known node operators.
+Because evan.network IPFS is permissioned, accessing the content for non particpante users is only possible through gateways which are provided by evan.network or known node operators. Therefore, the privacy of user requests data is the responsibility of the gateway provider.
 
