@@ -107,6 +107,20 @@ A schema DID is implicitly deleted by deleting the corresponding file from the u
 
 The basic purpose of this DID method is to store, identify and resolve schema definitions in a decentralized way. This is not considered to be a security critical mechanism. However, along the process of storing and accessing data, users of this DID method must take the usual common sense precautions to protect their accounts (e.g. to be used for pinning in IPFS networks) and do not expose any credentials or other security sensitive information in schema content.
 
+Each Storage network has its own security aspects:
+### Public IPFS 
+One of the security considerations is Evading. A Node can easily generate a completely new [Node Identity](https://medium.com/textileio/how-ipfs-peer-nodes-identify-each-other-on-the-distributed-web-8b5b6476aa5e) which make it impossible to exclude dishonest nodes, which serve contents for users that does not match the requested [CID](https://docs.ipfs.io/concepts/content-addressing/), from the network.
+Another consideration is that the messages being sent are not encrypted, which means that it would be possible for a [man-in-the-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) to intercept a message, change it and send it back on its way. Therefore, recipients should extra verify that the received content match the requested [CID](https://docs.ipfs.io/concepts/content-addressing/).
+### evan.network IPFS
+Since the IPFS of evan.network is a permissioned IPFS network Evading is not a security considereation. However, the [man-in-the-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) could still possible for not encrypted messages.
+
 ## Privacy Considerations
 
 Due to the fact that schemas are technical definitions of data structures that should never involve any personal information, privacy should not be much of a concern. In all supported storage networks, the data is stored anonymously and can not be traced back to any specific individual. It is the responsibility of the party providing the schema to make sure that no privacy sensitive data is contained in the schema content.
+
+Similar Storage network has its own Privacy Considerations:
+### Public IPFS
+With a slight modification to the IPFS node users requesting content can be tracked and data about them like ip-address, node id, Region could be collected. That happenes because when a user running a node requests content from the network, each node they’re connected to receives a message asking for that content. Even if the user is not running his own node and using public Gateway, the provider of the public Gateway could also track the users request and content.
+### evan.Network IPFS
+Because evan.network IPFS is permissioned, accessing the content for non particpante users is only through gateways which are provided by evan.network or known node operators.
+
